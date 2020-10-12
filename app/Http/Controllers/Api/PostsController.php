@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Posts;
 use App\Http\Resources\PostsResource;
+use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\PostRequest;
 
 class PostsController extends Controller
 {
@@ -22,7 +24,7 @@ class PostsController extends Controller
 
         // secound way to paginate page
 
-        $posts = PostsResource::collection(Posts::paginate(10));
+        $posts = PostsResource::collection(Posts::paginate($this->paginatePage()));
 
         return $this->ApiResponse($posts);
 
@@ -36,20 +38,65 @@ class PostsController extends Controller
             return $this->ApiResponse(new PostsResource($post));
         }
         else {
-            return ApiResponse(null ,'Not Found', Response::HTTP_NOT_FOUND);
+            return notFoundResponse();
         }
     }// end of get 1 post
 
-    public function store(Request $request)
+    public function store(PostRequest $request)
     {
+        // if(!$request->has('title') && $request->get('title' == ''))
+        // {
+        //     return $this->ApiResponse(null , "Title is required" , Response::HTTP_NON_AUTHORITATIVE_INFORMATION);
+        // }
+
+        // $validate = Validator::make($request->all() , [
+        //     'title' => 'required',
+        //     'body' => 'required',
+        // ]);
+
+
         $post =  Posts::create($request->all());
 
         if($post)
         {
-            return $this->ApiResponse(new PostsResource($post) , Response::HTTP_CREATED);
+            return $this->createResponse($post);
         } else {
-            return ApiResponse(null ,'Not Found', Response::HTTP_NOT_FOUND);
+            return $this->notFoundResponse();
         }
 
-    }
-}
+    }// end of store function
+
+    public function update(PostRequest $request , Posts $posts)
+    {
+
+        // if($validate->fails())
+        // {
+        //     return $this->ApiResponse(null , $validate->errors() , Response::HTTP_UNPROCESSABLE_ENTITY);
+        // }
+
+        $posts->update($request->all());
+
+        if($posts)
+        {
+            return $this->ApiResponse(new PostsResource($posts) , Response::HTTP_RESET_CONTENT);
+        } else {
+            return $this->notFoundResponse();
+        }
+
+    }// end of update function
+
+
+    public function destroy($id)
+    {
+       $post = Posts::find($id);
+
+       if($post)
+       {
+           $post->delete();
+
+           return $this->deletedResponse();
+       }
+
+    }// end of delete function
+
+}// end of controller
