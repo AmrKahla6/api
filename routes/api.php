@@ -21,3 +21,4 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 // Route::apiResource('posts', 'PostsController')->except(['create' , 'edit']);
 Route::get('posts', 'PostsController@index');
 Route::get('posts/{post}', 'PostsController@show');
+Route::post('posts' , 'PostsController@store');
